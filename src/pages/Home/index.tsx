@@ -2,6 +2,7 @@ import { Play } from 'phosphor-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
+import { useState } from 'react'
 
 import {
   CountdownContainer,
@@ -24,7 +25,16 @@ const newCycleFormValidationSchema = zod.object({
 type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
 export function Home() {
-  const { register, handleSubmit, watch } = useForm<NewCycleFormData>({
+  interface Cycle {
+    id: string
+    task: string
+    minutesAmount: number
+  }
+
+  const [cycles, setCycles] = useState<Cycle[]>([])
+  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+
+  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
     defaultValues: {
       task: '',
@@ -33,8 +43,23 @@ export function Home() {
   })
 
   function handleCreateNewCycle(data: NewCycleFormData) {
-    console.log(data)
+    const id = String(new Date().getTime())
+
+    const newCycle: Cycle = {
+      id,
+      task: data.task,
+      minutesAmount: data.minutesAmount,
+    }
+
+    setCycles((state) => [...state, newCycle])
+    setActiveCycleId(id)
+
+    reset()
   }
+
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  console.log(activeCycle)
 
   const task = watch('task')
   const isSubmitDisabled = !task
@@ -54,12 +79,6 @@ export function Home() {
             <option value="Projeto 1" />
             <option value="Projeto 2" />
             <option value="Projeto 3" />
-            <option value="Projeto 4" />
-            <option value="Projeto 5" />
-            <option value="Projeto 6" />
-            <option value="Projeto 7" />
-            <option value="Projeto 8" />
-            <option value="Projeto 9" />
           </datalist>
 
           <label htmlFor="minutesAmount">durante</label>
